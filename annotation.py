@@ -6,7 +6,6 @@
 import os
 import json
 from collections import namedtuple
-from distutils import dir_util
 
 # get current date and time
 import datetime
@@ -151,8 +150,6 @@ class Annotation:
             self.fromJsonText(jsonText)
 
     def toJsonFile(self, jsonFile):
-        # Create file if not found. Also create parent paths
-        dir_util.mkpath(jsonFile)
         with open(jsonFile, 'w') as f:
             f.write(self.toJson())
 

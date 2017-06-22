@@ -86,7 +86,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Filenames of all images in current city
         self.images = []
         # Image extension
-        self.imageExt = ".png"
+        self.imageExt = ".jpg"
         # Ground truth extension
         self.gtExt = "_polygons.json"
         # Current image as QImage
@@ -180,8 +180,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.clearPolygon()
         self.clearChanges()
 
-        # If we already know a city from the saved config -> load it
-        self.loadCity()
+        self.initImages()
         self.imageChanged()
 
     # Destructor
@@ -195,13 +194,6 @@ class TrvLabelTool(QtGui.QMainWindow):
 
         # Add the tool buttons
         iconDir = os.path.join(os.path.dirname(__file__), 'icons')
-
-        # Loading a new city
-        loadAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'open.png')), '&Tools', self)
-        loadAction.setShortcuts(['o'])
-        self.setTip(loadAction, 'Open city')
-        loadAction.triggered.connect(self.selectCity)
-        self.toolbar.addAction(loadAction)
 
         # Open previous image
         backAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'back.png')), '&Tools', self)
@@ -419,97 +411,6 @@ class TrvLabelTool(QtGui.QMainWindow):
 
     def test(self):
         print("test")
-
-    #############################
-    ## Toolbar call-backs
-    #############################
-
-    # The user pressed "select city"
-    # The purpose of this method is to set these configuration attributes:
-    #   - self.config.city           : path to the folder containing the images to annotate
-    #   - self.config.cityName       : name of this folder, i.e. the city
-    #   - self.config.labelPath      : path to the folder to store the polygons
-    #   - self.config.correctionPath : path to store the correction boxes in
-    #   - self.config.gtType         : type of ground truth, e.g. gtFine or gtCoarse
-    #   - self.config.split          : type of split, e.g. train, val, test
-    # The current implementation uses the environment variable 'CITYSCAPES_DATASET'
-    # to determine the dataset root folder and search available data within.
-    # Annotation types are required to start with 'gt', e.g. gtFine or gtCoarse.
-    # To add your own annotations you could create a folder gtCustom with similar structure.
-    #
-    # However, this implementation could be easily changed to a completely different folder structure.
-    # Just make sure to specify all three paths and a descriptive name as 'cityName'.
-    # The gtType and split can be left empty.
-    def selectCity(self):
-        # Reset the status bar to this message when leaving
-        restoreMessage = self.statusBar().currentMessage()
-
-        csPath = "/Users/louis/datasets/Cityscapes"
-
-        availableCities = []
-        annotations = sorted(glob.glob(os.path.join(csPath, 'gt*')))
-        annotations = [os.path.basename(a) for a in annotations]
-        splits = ["train_extra", "train", "val", "test"]
-        for gt in annotations:
-            for split in splits:
-                cities = glob.glob(os.path.join(csPath, gt, split, '*'))
-                cities.sort()
-                availableCities.extend([(split, gt, os.path.basename(c)) for c in cities if os.path.isdir(c)])
-
-        # List of possible labels
-        items = [split + ", " + gt + ", " + city for (split, gt, city) in availableCities]
-        # default
-        previousItem = self.config.split + ", " + self.config.gtType + ", " + self.config.cityName
-        default = 0
-        if previousItem in items:
-            default = items.index(previousItem)
-
-        # Specify title
-        dlgTitle = "Select city"
-        message = dlgTitle
-        question = dlgTitle
-        message = "Select city for editing"
-        question = "Which city would you like to edit?"
-        self.statusBar().showMessage(message)
-
-        if items:
-
-            # Create and wait for dialog
-            (item, ok) = QtGui.QInputDialog.getItem(self, dlgTitle, question, items, default, False)
-
-            # Restore message
-            self.statusBar().showMessage(restoreMessage)
-
-            if ok and item:
-                (split, gt, city) = [str(i) for i in item.split(', ')]
-                self.config.city = os.path.normpath(os.path.join(csPath, "leftImg8bit", split, city))
-                self.config.cityName = city
-
-                self.config.labelPath = os.path.normpath(os.path.join(csPath, gt, split, city))
-                self.config.correctionPath = os.path.normpath(os.path.join(csPath, gt + '_corrections', split, city))
-
-                self.config.gtType = gt
-                self.config.split = split
-
-                self.deselectAllObjects()
-                self.clearPolygon()
-                self.loadCity()
-                self.imageChanged()
-
-        else:
-
-            warning = ""
-            warning += "The data was not found. Please:\n\n"
-            warning += " - make sure the scripts folder is in the Cityscapes root folder\n"
-            warning += "or\n"
-            warning += " - set CITYSCAPES_DATASET to the Cityscapes root folder\n"
-            warning += "       e.g. 'export CITYSCAPES_DATASET=<root_path>'\n"
-
-            reply = QtGui.QMessageBox.information(self, "ERROR!", warning, QtGui.QMessageBox.Ok)
-            if reply == QtGui.QMessageBox.Ok:
-                sys.exit()
-
-        return
 
     # Switch to previous image in file list
     # Load the image
@@ -987,12 +888,10 @@ class TrvLabelTool(QtGui.QMainWindow):
     ## File I/O
     #############################
 
-    # Load the currently selected city if possible
-    def loadCity(self):
-        # Search for all *.pngs to get the image list
+    def initImages(self):
         self.images = []
-        if os.path.isdir(self.config.city):
-            self.images = glob.glob(os.path.join(self.config.city, '*' + self.imageExt))
+        if os.path.isdir(self.config.imagePath):
+            self.images = glob.glob(os.path.join(self.config.imagePath, '*' + self.imageExt))
             self.images.sort()
             if self.config.currentFile in self.images:
                 self.idx = self.images.index(self.config.currentFile)
@@ -2543,10 +2442,6 @@ class TrvLabelTool(QtGui.QMainWindow):
             return ""
 
         labelFileName = os.path.join(self.config.labelPath, self.config.currentFile.replace(self.imageExt, self.gtExt))
-
-        # Create if not exists
-        if not os.path.isdir(labelFileName):
-            dir_util.mkpath(labelFileName)
 
         return labelFileName
 

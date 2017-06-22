@@ -12,16 +12,8 @@ class configuration:
         self.currentLabelFile = ""
         # The filename of the corrections we currently working on
         self.currentCorrectionFile = ""
-        # The path where the Cityscapes dataset is located
-        self.csPath = ""
-        # The path of the images of the currently loaded city
-        self.city = ""
-        # The name of the currently loaded city
-        self.cityName = ""
-        # The type of the current annotations
-        self.gtType = ""
-        # The split, where the currently loaded city belongs to
-        self.split = ""
+        # The path where the dataset is located
+        self.imagePath = ""
         # The path of the labels. In this folder we expect a folder for each city
         # Within these city folders we expect the label with a filename matching
         # the images, except for the extension
@@ -67,34 +59,26 @@ class configuration:
             self.currentLabelFile = os.path.normpath(self.currentLabelFile)
         if self.currentCorrectionFile:
             self.currentCorrectionFile = os.path.normpath(self.currentCorrectionFile)
-        if self.csPath:
-            self.csPath = os.path.normpath(self.csPath)
-            if not os.path.isdir(self.csPath):
-                self.csPath = ""
-        if self.city:
-            self.city = os.path.normpath(self.city)
-            if not os.path.isdir(self.city):
-                self.city = ""
+        if self.imagePath:
+            self.imagePath = os.path.normpath(self.imagePath)
+            if not os.path.isdir(self.imagePath):
+                self.imagePath = ""
         if self.labelPath:
             self.labelPath = os.path.normpath(self.labelPath)
 
         if self.correctionPath:
             self.correctionPath = os.path.normpath(self.correctionPath)
 
-        if self.city:
-            self.cityName == os.path.basename(self.city)
-
-        if not os.path.isfile(self.currentFile) or os.path.dirname(self.currentFile) != self.city:
+        currentFileFullPath = os.path.join(self.imagePath, self.currentFile)
+        if not os.path.isfile(currentFileFullPath):
             self.currentFile = ""
 
-        if not os.path.isfile(self.currentLabelFile)                       or \
-           not os.path.isdir( os.path.join(self.labelPath,self.cityName) ) or \
-           os.path.dirname(self.currentLabelFile) != os.path.join(self.labelPath,self.cityName):
+        currentLabelFullPath = os.path.join(self.labelPath, self.currentLabelFile)
+        if not os.path.isfile(currentLabelFullPath):
             self.currentLabelFile = ""
 
-        if not os.path.isfile(self.currentCorrectionFile)                       or \
-           not os.path.isdir( os.path.join(self.correctionPath,self.cityName) ) or \
-           os.path.dirname(self.currentCorrectionFile) != os.path.join(self.correctionPath,self.cityName):
+        currentCorrectionFullPath = os.path.join(self.correctionPath, self.currentCorrectionFile)
+        if not os.path.isfile(currentCorrectionFullPath):
             self.currentCorrectionFile = ""
 
 
