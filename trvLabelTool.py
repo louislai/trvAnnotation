@@ -1606,9 +1606,10 @@ class TrvLabelTool(QtGui.QMainWindow):
                         self.addChange("Changed polygon of object {0} with label {1}".format(obj.id, obj.label))
             # Auto mode
             if self.auto and not self.drawPoly.isEmpty() and not self.drawPolyClosed:
+                REFRESH_RATE = 3
                 self.auto_cnt = 0 if not self.auto_cnt else self.auto_cnt
-                self.auto_cnt = (self.auto_cnt + 1) % 6
-                if self.auto_cnt == 5 and self.mousePosScaled is not None:
+                self.auto_cnt = (self.auto_cnt + 1) % REFRESH_RATE
+                if self.auto_cnt == REFRESH_RATE - 1 and self.mousePosScaled is not None:
                     self.addPtToPoly(self.mousePosScaled)
                     # Redraw
                     self.update()
