@@ -714,6 +714,15 @@ class TrvLabelTool(QtGui.QMainWindow):
 
     # Create object with label
     def label(self, newObject, label):
+        # Skip if object has <3 points (not a polygon):
+        if newObject.count() < 3:
+            # Clear the drawn polygon
+            self.deselectAllObjects()
+            self.clearPolygon()
+            self.statusBar().showMessage("Not a polygon")
+
+            return
+
         if label:
             # Append and create the new object
             self.appendObject(label, newObject)
@@ -1617,7 +1626,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         else:
             if self.in_progress_bbox is not None:
                 p0 = (self.mousePosScaled.x(), self.mousePosScaled.y())
-                p1 = (self.mousePressEvent.x(), self.mousePressEvent.y())
+                p1 = (self.mousePressEvent.x(), self.moausePressEvent.y())
                 xy = min(p0[0], p1[0]), min(p0[1], p1[1])
                 w, h = abs(p0[0] - p1[0]), abs(p0[1] - p1[1])
                 self.in_progress_bbox = QtCore.QRectF(xy[0], xy[1], w, h)
