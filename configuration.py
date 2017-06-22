@@ -38,6 +38,8 @@ class configuration:
         self.correctionMode = False
         # Warn before saving that you are overwriting files
         self.showSaveWarning = True
+        # Quick label enabled?
+        self.quickLabel = True
 
     # Load from given filename
     def load(self, filename):
@@ -69,16 +71,13 @@ class configuration:
         if self.correctionPath:
             self.correctionPath = os.path.normpath(self.correctionPath)
 
-        currentFileFullPath = os.path.join(self.imagePath, self.currentFile)
-        if not os.path.isfile(currentFileFullPath):
+        if not os.path.isfile(self.currentFile):
             self.currentFile = ""
 
-        currentLabelFullPath = os.path.join(self.labelPath, self.currentLabelFile)
-        if not os.path.isfile(currentLabelFullPath):
+        if not os.path.isfile(self.currentLabelFile):
             self.currentLabelFile = ""
 
-        currentCorrectionFullPath = os.path.join(self.correctionPath, self.currentCorrectionFile)
-        if not os.path.isfile(currentCorrectionFullPath):
+        if not os.path.isfile(self.currentCorrectionFile):
             self.currentCorrectionFile = ""
 
 

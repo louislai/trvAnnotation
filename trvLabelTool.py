@@ -34,7 +34,6 @@ import copy
 # annotation helper
 from annotation import Point, Annotation, CsObject
 from labels import name2label
-from distutils import dir_util
 
 from configuration import configuration
 from correction_box import CorrectionBox
@@ -57,7 +56,7 @@ class TrvLabelTool(QtGui.QMainWindow):
 
         # The filename of where the config is saved and loaded
         configDir = os.path.dirname(__file__)
-        self.configFile = os.path.join(configDir, "cityscapesLabelTool.conf")
+        self.configFile = os.path.join(configDir, "trvLabelTool.conf")
 
         # This is the configuration.
         self.config = configuration()
@@ -68,6 +67,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Auto mode
         self.auto = False
         self.auto_cnt = 0
+
 
         # The width that we actually use to show the image
         self.w = 0
@@ -171,6 +171,8 @@ class TrvLabelTool(QtGui.QMainWindow):
             return
         # Last selected label
         self.lastLabel = self.defaultLabel
+        # Chosen label for quick labeling
+        self.chosenLabel = self.defaultLabel
 
         # Setup the GUI
         self.initUI()
@@ -391,6 +393,19 @@ class TrvLabelTool(QtGui.QMainWindow):
         closePolygonShortcut.setKey('v')
         self.connect(closePolygonShortcut, QtCore.SIGNAL("activated()"), self.closePolygon)
 
+        # Labels indicator labels
+        self.labelLabel = QtGui.QLabel(self.chosenLabel)
+        self.labelLabel.setStyleSheet("border: 2px solid grey")
+        self.toolbar.addWidget(self.labelLabel)
+
+        # Hotkey to switch labels
+        def chooseLabelHelper(lbl):
+            def f(): self.chooseLabel(lbl)
+            return f
+        for label in name2label.values():
+            chooseLabelShortcut = QtGui.QShortcut(self)
+            chooseLabelShortcut.setKey(str(label.id))
+            self.connect(chooseLabelShortcut, QtCore.SIGNAL("activated()"), chooseLabelHelper(label))
 
         # The default text for the status bar
         self.defaultStatusbar = 'Ready'
@@ -409,8 +424,11 @@ class TrvLabelTool(QtGui.QMainWindow):
         # And show the application
         self.show()
 
-    def test(self):
-        print("test")
+    def chooseLabel(self, label):
+        print(label)
+        self.labelLabel.setText(label.name)
+        self.chosenLabel = label.name
+        self.update()
 
     # Switch to previous image in file list
     # Load the image
@@ -656,9 +674,20 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Ask the user for a label
         (label, ok) = self.getLabelFromUser(label)
 
-        if ok and label:
+        if ok:
+            self.label(object, label)
+
+    # Create a new object automatically
+
+    def autoNewObject(self):
+        self.label(self.drawPoly, self.chosenLabel)
+
+
+    # Create object with label
+    def label(self, newObject, label):
+        if label:
             # Append and create the new object
-            self.appendObject(label, self.drawPoly)
+            self.appendObject(label, newObject)
 
             # Clear the drawn polygon
             self.deselectAllObjects()
@@ -668,13 +697,8 @@ class TrvLabelTool(QtGui.QMainWindow):
             self.statusBar().showMessage(self.defaultStatusbar)
 
             # Set as default label for next time
-            self.lastLabel = label
-
-        # Redraw
+            self.lastLabel = label  # Redraw
         self.update()
-
-    # Create a new object automatically
-
 
     # Delete the currently selected object
     def deleteObject(self):
@@ -1970,6 +1994,9 @@ class TrvLabelTool(QtGui.QMainWindow):
         message = "What should I do with the polygon? Press n to create a new object, press Ctrl + Left Click to intersect with another object"
         self.statusBar().showMessage(message)
 
+        if self.config.quickLabel:
+            self.autoNewObject()
+
     # Intersect the drawn polygon with the mouse object
     # and create a new object with same label and so on
     def intersectPolygon(self):
@@ -2441,7 +2468,8 @@ class TrvLabelTool(QtGui.QMainWindow):
         if not self.config.currentFile:
             return ""
 
-        labelFileName = os.path.join(self.config.labelPath, self.config.currentFile.replace(self.imageExt, self.gtExt))
+        image_base_name = os.path.basename(self.config.currentFile)
+        labelFileName = os.path.join(self.config.labelPath, image_base_name.replace(self.imageExt, self.gtExt))
 
         return labelFileName
 
