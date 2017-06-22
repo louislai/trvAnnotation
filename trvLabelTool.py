@@ -393,19 +393,29 @@ class TrvLabelTool(QtGui.QMainWindow):
         closePolygonShortcut.setKey('v')
         self.connect(closePolygonShortcut, QtCore.SIGNAL("activated()"), self.closePolygon)
 
+        # Label toolbar
+        self.addToolBarBreak()
+        self.labelToolbar = self.addToolBar("Label")
+
         # Labels indicator labels
-        self.labelLabel = QtGui.QLabel(self.chosenLabel)
-        self.labelLabel.setStyleSheet("border: 2px solid grey")
-        self.toolbar.addWidget(self.labelLabel)
+        self.labelLabels = {}
 
         # Hotkey to switch labels
         def chooseLabelHelper(lbl):
             def f(): self.chooseLabel(lbl)
             return f
-        for label in name2label.values():
-            chooseLabelShortcut = QtGui.QShortcut(self)
-            chooseLabelShortcut.setKey(str(label.id))
-            self.connect(chooseLabelShortcut, QtCore.SIGNAL("activated()"), chooseLabelHelper(label))
+        for (i, label) in enumerate(sorted(name2label.values(), key=lambda lbl: lbl.id)):
+            shortCut = str(i + 1)
+            labelLabel = QtGui.QLabel("{} - {}".format(shortCut, label.name), self)
+            labelShortcut = QtGui.QShortcut(self)
+            labelShortcut.setKey(shortCut)
+            self.connect(labelShortcut, QtCore.SIGNAL("activated()"), chooseLabelHelper(label.name))
+            self.labelLabels[label.name] = (labelLabel, label)
+            self.labelToolbar.addWidget(labelLabel)
+
+        # Init selected label
+        self.chooseLabel(self.chosenLabel)
+
 
         # The default text for the status bar
         self.defaultStatusbar = 'Ready'
@@ -424,14 +434,29 @@ class TrvLabelTool(QtGui.QMainWindow):
         # And show the application
         self.show()
 
-    def chooseLabel(self, label):
+    def chooseLabel(self, selectedLabelName):
+        selectedLabelLabel, selectedLabel = self.labelLabels[selectedLabelName]
+
         # Check if we are trying to modify stuff
         if self.selObjs:
-            self.quickModifyLabel(label.name)
+            self.quickModifyLabel(selectedLabelName)
             return
 
-        self.labelLabel.setText(label.name)
-        self.chosenLabel = label.name
+        for (labelLabel, label) in self.labelLabels.values():
+            isSelected = label.name == selectedLabelName
+            borderWidth = 3 if isSelected else 0
+            r, g, b = label.color
+            backgroundColor = 'rgb({}, {}, {})'.format(r, g, b)
+            stylesheet = """
+                border: {}px solid blue;
+                background: {};
+                font-size: 20px;
+                color: brown;
+            """.format(
+                borderWidth, backgroundColor
+            )
+            labelLabel.setStyleSheet(stylesheet)
+
         self.update()
 
     # Switch to previous image in file list

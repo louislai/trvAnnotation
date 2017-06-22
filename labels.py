@@ -35,10 +35,10 @@ Label = namedtuple( 'Label' , [
 labels = [
     #       name                     id    color
     Label(  'background'            ,  0 ,  (  0,  0,  0)  ),
-    Label(  'dense_trees'           ,  1 ,  (  0,  255, 0)  ),
-    Label(  'tree_farm'             ,  2 ,  (128, 64, 128) ),
-    Label(  'flat_farm'             ,  3 ,  (222, 184, 232) ),
-    Label(  'building'              ,  4 ,  (  0,  0, 142) ),
+    Label(  'dense_trees'           ,  1 ,  (  255,  255, 0)  ),
+    Label(  'tree_farm'             ,  2 ,  ( 0, 255, 255) ),
+    Label(  'flat_farm'             ,  3 ,  ( 255, 0, 255) ),
+    Label(  'building'              ,  4 ,  (  0,  255, 0) ),
 ]
 
 #--------------------------------------------------------------------------------
