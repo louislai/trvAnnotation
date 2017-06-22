@@ -1145,8 +1145,8 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Draw the label name next to the mouse
         self.drawLabelAtMouse(qp)
         # Draw the zoom
-        # self.drawZoom(qp, overlay)
-        self.drawZoom(qp, None)
+        self.drawZoom(qp, overlay)
+        #self.drawZoom(qp, None)
 
         # Thats all drawing
         qp.end()
@@ -1521,6 +1521,16 @@ class TrvLabelTool(QtGui.QMainWindow):
 
         # Show the zoom image
         qp.drawImage(view, self.image, sel)
+
+        # Draw the overlay
+        # Save QPainter settings to stack
+        qp.save()
+        # Define transparency
+        qp.setOpacity(self.config.transp)
+
+        qp.drawImage(view, overlay.scaled(self.image.size()), sel)
+        # Restore settings
+        qp.restore()
 
         # If we are currently drawing the polygon, we need to draw again in the zoom
         if not self.drawPoly.isEmpty():
