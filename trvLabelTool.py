@@ -265,12 +265,12 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.actSelObj.append(deleteObjectAction)
 
         # Undo changes in current image, ie. reload labels from file
-        undoAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'undo.png')), '&Tools', self)
-        undoAction.setShortcuts('u')
-        self.setTip(undoAction, 'Undo all unsaved changes')
-        undoAction.triggered.connect(self.undo)
-        self.toolbar.addAction(undoAction)
-        self.actChanges.append(undoAction)
+        # undoAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'undo.png')), '&Tools', self)
+        # undoAction.setShortcuts('u')
+        # self.setTip(undoAction, 'Undo all unsaved changes')
+        # undoAction.triggered.connect(self.undo)
+        # self.toolbar.addAction(undoAction)
+        # self.actChanges.append(undoAction)
 
         # Modify the label of a selected object
         labelAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'modify.png')), '&Tools', self)
@@ -307,14 +307,14 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.actImage.append(zoomAction)
 
         # Highlight objects of a certain class
-        highlightAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'highlight.png')), '&Tools', self)
-        highlightAction.setShortcuts(['g'])
-        highlightAction.setCheckable(True)
-        highlightAction.setChecked(self.config.highlight)
-        self.setTip(highlightAction, 'Enable/disable highlight of certain object class')
-        highlightAction.toggled.connect(self.highlightClassToggle)
-        self.toolbar.addAction(highlightAction)
-        self.actImage.append(highlightAction)
+        # highlightAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'highlight.png')), '&Tools', self)
+        # highlightAction.setShortcuts(['g'])
+        # highlightAction.setCheckable(True)
+        # highlightAction.setChecked(self.config.highlight)
+        # self.setTip(highlightAction, 'Enable/disable highlight of certain object class')
+        # highlightAction.toggled.connect(self.highlightClassToggle)
+        # self.toolbar.addAction(highlightAction)
+        # self.actImage.append(highlightAction)
 
         # Decrease transparency
         minusAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'minus.png')), '&Tools', self)
@@ -331,23 +331,23 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.toolbar.addAction(plusAction)
 
         # Take a screenshot
-        screenshotAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'screenshot.png')), '&Tools', self)
-        screenshotAction.setShortcut('t')
-        self.setTip(screenshotAction, 'Take a screenshot')
-        screenshotAction.triggered.connect(self.screenshot)
-        self.toolbar.addAction(screenshotAction)
-        self.actImage.append(screenshotAction)
+        # screenshotAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'screenshot.png')), '&Tools', self)
+        # screenshotAction.setShortcut('t')
+        # self.setTip(screenshotAction, 'Take a screenshot')
+        # screenshotAction.triggered.connect(self.screenshot)
+        # self.toolbar.addAction(screenshotAction)
+        # self.actImage.append(screenshotAction)
 
         # Take a screenshot in each loaded frame
-        screenshotToggleAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'screenshotToggle.png')), '&Tools',
-                                               self)
-        screenshotToggleAction.setShortcut('Ctrl+t')
-        screenshotToggleAction.setCheckable(True)
-        screenshotToggleAction.setChecked(False)
-        self.setTip(screenshotToggleAction, 'Take a screenshot in each loaded frame')
-        screenshotToggleAction.toggled.connect(self.screenshotToggle)
-        self.toolbar.addAction(screenshotToggleAction)
-        self.actImage.append(screenshotToggleAction)
+        # screenshotToggleAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'screenshotToggle.png')), '&Tools',
+        #                                        self)
+        # screenshotToggleAction.setShortcut('Ctrl+t')
+        # screenshotToggleAction.setCheckable(True)
+        # screenshotToggleAction.setChecked(False)
+        # self.setTip(screenshotToggleAction, 'Take a screenshot in each loaded frame')
+        # screenshotToggleAction.toggled.connect(self.screenshotToggle)
+        # self.toolbar.addAction(screenshotToggleAction)
+        # self.actImage.append(screenshotToggleAction)
 
         # Display path to current image in message bar
         displayFilepathAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'filepath.png')), '&Tools', self)
@@ -357,15 +357,15 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.toolbar.addAction(displayFilepathAction)
 
         # Open correction mode
-        self.correctAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'checked6.png')), '&Tools', self)
-        self.correctAction.setShortcut('c')
-        self.correctAction.setCheckable(True)
-        self.correctAction.setChecked(self.config.correctionMode)
-        if self.config.correctionMode:
-            self.correctAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'checked6_red.png')))
-        self.setTip(self.correctAction, 'Toggle correction mode')
-        self.correctAction.triggered.connect(self.toggleCorrectionMode)
-        self.toolbar.addAction(self.correctAction)
+        # self.correctAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'checked6.png')), '&Tools', self)
+        # self.correctAction.setShortcut('c')
+        # self.correctAction.setCheckable(True)
+        # self.correctAction.setChecked(self.config.correctionMode)
+        # if self.config.correctionMode:
+        #     self.correctAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'checked6_red.png')))
+        # self.setTip(self.correctAction, 'Toggle correction mode')
+        # self.correctAction.triggered.connect(self.toggleCorrectionMode)
+        # self.toolbar.addAction(self.correctAction)
 
         # Display help message
         helpAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'help19.png')), '&Tools', self)
