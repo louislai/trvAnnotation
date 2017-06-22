@@ -32,9 +32,9 @@ import copy
 #################
 
 # annotation helper
-sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'helpers')))
 from annotation import Point, Annotation, CsObject
-from labels import name2label, assureSingleInstanceName
+from labels import name2label
+from distutils import dir_util
 
 from configuration import configuration
 from correction_box import CorrectionBox
@@ -45,7 +45,7 @@ from correction_box import CorrectionBox
 #################
 
 # The main class which is a QtGui -> Main Window
-class CityscapesLabelTool(QtGui.QMainWindow):
+class TrvLabelTool(QtGui.QMainWindow):
     #############################
     ## Construction / Destruction
     #############################
@@ -53,7 +53,7 @@ class CityscapesLabelTool(QtGui.QMainWindow):
     # Constructor
     def __init__(self):
         # Construct base class
-        super(CityscapesLabelTool, self).__init__()
+        super(TrvLabelTool, self).__init__()
 
         # The filename of where the config is saved and loaded
         configDir = os.path.dirname(__file__)
@@ -86,9 +86,9 @@ class CityscapesLabelTool(QtGui.QMainWindow):
         # Filenames of all images in current city
         self.images = []
         # Image extension
-        self.imageExt = "_leftImg8bit.png"
+        self.imageExt = ".png"
         # Ground truth extension
-        self.gtExt = "{}_polygons.json"
+        self.gtExt = "_polygons.json"
         # Current image as QImage
         self.image = QtGui.QImage()
         # Index of the current image within the city folder
@@ -165,7 +165,7 @@ class CityscapesLabelTool(QtGui.QMainWindow):
         self.mousePressEvent = []
 
         # Default label
-        self.defaultLabel = 'static'
+        self.defaultLabel = 'background'
         if not self.defaultLabel in name2label:
             print('The {0} label is missing in the internal label definitions.'.format(self.defaultLabel))
             return
@@ -772,6 +772,9 @@ class CityscapesLabelTool(QtGui.QMainWindow):
         # Redraw
         self.update()
 
+    # Create a new object automatically
+
+
     # Delete the currently selected object
     def deleteObject(self):
         # Cannot do anything without a selected object
@@ -1031,9 +1034,9 @@ class CityscapesLabelTool(QtGui.QMainWindow):
     # Otherwise the filename is stored and that's it
     def loadLabels(self):
         filename = self.getLabelFilename()
+        # Create annotation file if not exists
         if not filename or not os.path.isfile(filename):
-            self.clearAnnotation()
-            return
+            Annotation().toJsonFile(filename)
 
         # If we have everything and the filename did not change, then we are good
         if self.annotation and filename == self.currentLabelFile:
@@ -1307,7 +1310,7 @@ class CityscapesLabelTool(QtGui.QMainWindow):
                 continue
 
             # The label of the object
-            name = assureSingleInstanceName(obj.label)
+            name = obj.label
             # If we do not know a color for this label, warn the user
             if not name in name2label:
                 print(
@@ -2000,10 +2003,6 @@ class CityscapesLabelTool(QtGui.QMainWindow):
         # Draw
         qp.drawEllipse(pt, r, r)
 
-    # Determine if the given candidate for a label path makes sense
-    def isLabelPathValid(self, labelPath):
-        return os.path.isdir(labelPath)
-
     # Ask the user to select a label
     # If you like, you can give an object ID for a better dialog texting
     # Note that giving an object ID assumes that its current label is the default label
@@ -2539,36 +2538,17 @@ class CityscapesLabelTool(QtGui.QMainWindow):
     # Returns empty string if not possible
     # Set the createDirs to true, if you want to create needed directories
     def getLabelFilename(self, createDirs=False):
-        # We need the name of the current city
-        if not self.config.cityName:
-            return ""
-        # And we need to have a directory where labels should be searched
-        if not self.config.labelPath:
-            return ""
-        # Without the name of the current images, there is also nothing we can do
+        # We need the name of the current image
         if not self.config.currentFile:
             return ""
-        # Check if the label directory is valid. This folder is selected by the user
-        # and thus expected to exist
-        if not self.isLabelPathValid(self.config.labelPath):
-            return ""
-        # Dirs are not automatically created in this version of the tool
-        if not os.path.isdir(self.config.labelPath):
-            return ""
 
-        labelDir = self.config.labelPath
+        labelFileName = os.path.join(self.config.labelPath, self.config.currentFile.replace(self.imageExt, self.gtExt))
 
-        # extension of ground truth files
-        if self.config.gtType:
-            ext = self.gtExt.format('_' + self.config.gtType)
-        else:
-            ext = self.gtExt.format('')
-        # Generate the filename of the label file
-        filename = os.path.basename(self.config.currentFile)
-        filename = filename.replace(self.imageExt, ext)
-        filename = os.path.join(labelDir, filename)
-        filename = os.path.normpath(filename)
-        return filename
+        # Create if not exists
+        if not os.path.isdir(labelFileName):
+            dir_util.mkpath(labelFileName)
+
+        return labelFileName
 
     # Get the filename where to load/save labels
     # Returns empty string if not possible
@@ -2608,7 +2588,7 @@ class CityscapesLabelTool(QtGui.QMainWindow):
 def main():
     app = QtGui.QApplication(sys.argv)
 
-    tool = CityscapesLabelTool()
+    tool = TrvLabelTool()
 
     sys.exit(app.exec_())
 
