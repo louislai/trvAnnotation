@@ -979,7 +979,11 @@ class TrvLabelTool(QtGui.QMainWindow):
         filename = self.getLabelFilename()
         # Create annotation file if not exists
         if not filename or not os.path.isfile(filename):
-            Annotation().toJsonFile(filename)
+            annotation = Annotation()
+            imgSize = self.image.size()
+            annotation.imgHeight = imgSize.height()
+            annotation.imgWidth = imgSize.width()
+            annotation.toJsonFile(filename)
 
         # If we have everything and the filename did not change, then we are good
         if self.annotation and filename == self.currentLabelFile:
