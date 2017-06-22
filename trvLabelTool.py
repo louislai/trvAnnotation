@@ -382,7 +382,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.toolbar.addAction(exitAction)
 
         # Toggle auto mode
-        autoAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'checked6.png')), 'Toggle auto mode', self)
+        autoAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'auto.png')), 'Toggle auto mode', self)
         autoAction.setShortcut('a')
         autoAction.triggered.connect(self.toggleAuto)
         self.toolbar.addAction(autoAction)
@@ -425,7 +425,11 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.show()
 
     def chooseLabel(self, label):
-        print(label)
+        # Check if we are trying to modify stuff
+        if self.selObjs:
+            self.quickModifyLabel(label.name)
+            return
+
         self.labelLabel.setText(label.name)
         self.chosenLabel = label.name
         self.update()
@@ -747,6 +751,22 @@ class TrvLabelTool(QtGui.QMainWindow):
         (label, ok) = self.getLabelFromUser(defaultLabel, defaultId)
 
         if ok and label:
+            for selObj in self.selObjs:
+                # The selected object that is modified
+                obj = self.annotation.objects[selObj]
+
+                # Save changes
+                if obj.label != label:
+                    self.addChange(
+                        "Set label {0} for object {1} with previous label {2}".format(label, obj.id, obj.label))
+                    obj.label = label
+                    obj.updateDate()
+
+        # Update
+        self.update()
+
+    def quickModifyLabel(self, label):
+        if label:
             for selObj in self.selObjs:
                 # The selected object that is modified
                 obj = self.annotation.objects[selObj]
@@ -1589,10 +1609,10 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.auto = not self.auto
         if self.auto:
             iconDir = os.path.join(os.path.dirname(sys.argv[0]), 'icons')
-            self.autoAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'checked6_red.png')))
+            self.autoAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'auto_red.png')))
         else:
             iconDir = os.path.join(os.path.dirname(sys.argv[0]), 'icons')
-            self.autoAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'checked6.png')))
+            self.autoAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'auto.png')))
         self.update()
 
     # Mouse button pressed
