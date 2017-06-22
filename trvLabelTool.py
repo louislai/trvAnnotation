@@ -703,6 +703,8 @@ class TrvLabelTool(QtGui.QMainWindow):
             # Set as default label for next time
             self.lastLabel = label  # Redraw
         self.update()
+        if self.config.autoSave:
+            self.save()
 
     # Delete the currently selected object
     def deleteObject(self):
@@ -751,19 +753,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         (label, ok) = self.getLabelFromUser(defaultLabel, defaultId)
 
         if ok and label:
-            for selObj in self.selObjs:
-                # The selected object that is modified
-                obj = self.annotation.objects[selObj]
-
-                # Save changes
-                if obj.label != label:
-                    self.addChange(
-                        "Set label {0} for object {1} with previous label {2}".format(label, obj.id, obj.label))
-                    obj.label = label
-                    obj.updateDate()
-
-        # Update
-        self.update()
+            self.quickModifyLabel(label)
 
     def quickModifyLabel(self, label):
         if label:
@@ -780,6 +770,10 @@ class TrvLabelTool(QtGui.QMainWindow):
 
         # Update
         self.update()
+
+        if self.config.autoSave:
+            self.save()
+
 
     # Move object a layer up
     def layerUp(self):

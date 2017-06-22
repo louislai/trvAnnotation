@@ -36,10 +36,12 @@ class configuration:
         self.screenshotFilename = "%i"
         # Correction mode
         self.correctionMode = False
-        # Warn before saving that you are overwriting files
-        self.showSaveWarning = True
+        # Warn before saving that you are overwriting files.
+        self.showSaveWarning = False
         # Quick label enabled?
         self.quickLabel = True
+        # Autosave?
+        self.autoSave = True
 
     # Load from given filename
     def load(self, filename):
