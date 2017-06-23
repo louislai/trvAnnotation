@@ -399,7 +399,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.autoAction = autoAction
 
         # Toggle zoom lock
-        lockZoomAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'auto.png')), '&Tools', self)
+        lockZoomAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'lock.png')), '&Tools', self)
         lockZoomAction.setShortcut('l')
         self.setTip(lockZoomAction, 'Toggle locking of zoom position')
         lockZoomAction.triggered.connect(self.toggleLockZoom)
@@ -1724,10 +1724,10 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.lockZoom = not self.lockZoom
         if self.lockZoom:
             iconDir = os.path.join(os.path.dirname(sys.argv[0]), 'icons')
-            self.lockZoomAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'auto_red.png')))
+            self.lockZoomAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'lock_red.png')))
         else:
             iconDir = os.path.join(os.path.dirname(sys.argv[0]), 'icons')
-            self.lockZoomAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'auto.png')))
+            self.lockZoomAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'lock.png')))
         self.update()
 
     # Mouse button pressed
