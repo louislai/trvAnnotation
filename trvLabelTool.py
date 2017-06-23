@@ -1544,6 +1544,7 @@ class TrvLabelTool(QtGui.QMainWindow):
 
     def getMousePosScaled(self, mousePos, zoomPos):
         zoomSize = self.config.zoomSize
+        multiplier = self.config.zoomFactor * self.config.zoomFactor
 
         # The pixel that is the zoom center
         pix = QtCore.QPointF(float(zoomPos.x() - self.xoff) / self.scale,
@@ -1554,18 +1555,20 @@ class TrvLabelTool(QtGui.QMainWindow):
         pix.setY(min(pix.y(), self.image.rect().bottom()))
 
         # The size of the part of the image that is drawn in the zoom window
-        selSize = zoomSize / (self.config.zoomFactor * self.config.zoomFactor)
+        selSize = zoomSize / multiplier
         # The selection window for the image
         sel = QtCore.QRectF(pix.x() - selSize / 2, pix.y() - selSize / 2, selSize, selSize)
         # The selection window for the widget
 
 
-        zoomWindow = QtCore.QRectF(zoomPos.x() - zoomSize / 2, zoomPos.y() - zoomSize / 2, zoomSize, zoomSize)
+        zoomWindow = QtCore.QRectF(zoomPos.x() - zoomSize / 2,
+                                   zoomPos.y() - zoomSize / 2,
+                                   zoomSize, zoomSize)
         x = sel.topLeft().x()
         y = sel.topLeft().y()
 
-        x += (mousePos.x() - zoomWindow.topLeft().x()) * (self.config.zoomFactor * self.config.zoomFactor)
-        y += (mousePos.y() - zoomWindow.topLeft().y()) * (self.config.zoomFactor * self.config.zoomFactor)
+        x += (mousePos.x() - zoomWindow.topLeft().x()) / multiplier
+        y += (mousePos.y() - zoomWindow.topLeft().y()) / multiplier
 
         return QtCore.QPointF(x, y)
 
@@ -1587,6 +1590,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Abbrevation for the mouse position
         mouse = self.zoomPos
 
+        multiplier = self.config.zoomFactor * self.config.zoomFactor
         # The pixel that is the zoom center
         pix = QtCore.QPointF(float(mouse.x() - self.xoff) / self.scale,
                              float(mouse.y() - self.yoff) / self.scale)
@@ -1596,7 +1600,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         pix.setY(min(pix.y(), self.image.rect().bottom()))
 
         # The size of the part of the image that is drawn in the zoom window
-        selSize = zoomSize / (self.config.zoomFactor * self.config.zoomFactor)
+        selSize = zoomSize / multiplier
         # The selection window for the image
         sel = QtCore.QRectF(pix.x() - selSize / 2, pix.y() - selSize / 2, selSize, selSize)
         # The selection window for the widget
@@ -1924,10 +1928,10 @@ class TrvLabelTool(QtGui.QMainWindow):
     # Scaled refering to the image
     # And a zoom version, where the mouse movement is artificially slowed down
     def updateMousePos(self, mousePosOrig):
-        if self.config.zoomFactor <= 1 or (self.drawPolyClosed or self.drawPoly.isEmpty()):
-            sens = 1.0
-        else:
-            sens = 1.0 / pow(self.config.zoomFactor, 3);
+        # if self.config.zoomFactor <= 1 or (self.drawPolyClosed or self.drawPoly.isEmpty()):
+        sens = 1.0
+        # else:
+        #     sens = 1.0 / pow(self.config.zoomFactor, 3);
 
         if self.config.zoom and self.mousePosOnZoom is not None:
             mousePos = QtCore.QPointF(round((1 - sens) * self.mousePosOnZoom.x() + (sens) * mousePosOrig.x()),
