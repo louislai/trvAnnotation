@@ -113,9 +113,14 @@ class TrvLabelTool(QtGui.QMainWindow):
         # The position of the mouse
         self.mousePos = None
         # TODO: NEEDS BETTER EXPLANATION/ORGANISATION
+        # Including offset
         self.mousePosOrig = None
-        # The position of the mouse scaled to label coordinates
+        # The position of the mouse scaled to label coordinates. Excluding offset
         self.mousePosScaled = None
+        # Position of zoom center, most of the time following mousePos
+        self.zoomPos = None
+        # Position of zoom center scaled to label coordinates
+        self.zoomPosScaled = None
         # If the mouse is outside of the image
         self.mouseOutsideImage = True
         # The position of the mouse upon enabling the zoom window
@@ -464,7 +469,7 @@ class TrvLabelTool(QtGui.QMainWindow):
                 border: {}px solid blue;
                 background: {};
                 font-size: 20px;
-                color: brown;
+                color: gray;
             """.format(
                 borderWidth, backgroundColor
             )
@@ -1194,7 +1199,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Horizontal offset
         self.xoff = self.bordergap
         # Vertical offset
-        self.yoff = self.toolbar.height() + self.bordergap
+        self.yoff = self.toolbar.height() +  self.labelToolbar.height() + self.bordergap
         # We want to make sure to keep the image aspect ratio and to make it fit within the widget
         # Without keeping the aspect ratio, each side of the image is scaled (multiplied) with
         sx = float(qp.device().width() - 2 * self.xoff) / self.image.width()
@@ -1526,6 +1531,45 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Restore settings
         qp.restore()
 
+    def isMouseInZoomWindow(self, mousePos):
+        if not mousePos or not self.config.zoom:
+            return False
+
+        # The pixel that is the zoom center
+        zoomPos = self.zoomPos
+        zoomSize = self.config.zoomSize
+        zoomWindow = QtCore.QRectF(zoomPos.x() - zoomSize / 2, zoomPos.y() - zoomSize / 2, zoomSize, zoomSize)
+
+        return zoomWindow.contains(mousePos)
+
+    def getMousePosScaled(self, mousePos, zoomPos):
+        zoomSize = self.config.zoomSize
+
+        # The pixel that is the zoom center
+        pix = QtCore.QPointF(float(zoomPos.x() - self.xoff) / self.scale,
+                             float(zoomPos.y() - self.yoff) / self.scale)
+        pix.setX(max(pix.x(), 0.))
+        pix.setY(max(pix.y(), 0.))
+        pix.setX(min(pix.x(), self.image.rect().right()))
+        pix.setY(min(pix.y(), self.image.rect().bottom()))
+
+        # The size of the part of the image that is drawn in the zoom window
+        selSize = zoomSize / (self.config.zoomFactor * self.config.zoomFactor)
+        # The selection window for the image
+        sel = QtCore.QRectF(pix.x() - selSize / 2, pix.y() - selSize / 2, selSize, selSize)
+        # The selection window for the widget
+
+
+        zoomWindow = QtCore.QRectF(zoomPos.x() - zoomSize / 2, zoomPos.y() - zoomSize / 2, zoomSize, zoomSize)
+        x = sel.topLeft().x()
+        y = sel.topLeft().y()
+
+        x += (mousePos.x() - zoomWindow.topLeft().x()) * (self.config.zoomFactor * self.config.zoomFactor)
+        y += (mousePos.y() - zoomWindow.topLeft().y()) * (self.config.zoomFactor * self.config.zoomFactor)
+
+        return QtCore.QPointF(x, y)
+
+
     # Draw the zoom
     def drawZoom(self, qp, overlay):
         # Zoom disabled?
@@ -1535,16 +1579,22 @@ class TrvLabelTool(QtGui.QMainWindow):
         if self.image.isNull() or not self.w or not self.h:
             return
         # No mouse
-        if not self.mousePos:
+        if not self.zoomPos:
             return
 
         # Abbrevation for the zoom window size
         zoomSize = self.config.zoomSize
         # Abbrevation for the mouse position
-        mouse =  self.lockedMousePos if self.lockZoom else self.mousePos
+        mouse = self.zoomPos
 
         # The pixel that is the zoom center
-        pix = self.lockedMousePosScaled if self.lockZoom else self.mousePosScaled
+        pix = QtCore.QPointF(float(mouse.x() - self.xoff) / self.scale,
+                             float(mouse.y() - self.yoff) / self.scale)
+        pix.setX(max(pix.x(), 0.))
+        pix.setY(max(pix.y(), 0.))
+        pix.setX(min(pix.x(), self.image.rect().right()))
+        pix.setY(min(pix.y(), self.image.rect().bottom()))
+
         # The size of the part of the image that is drawn in the zoom window
         selSize = zoomSize / (self.config.zoomFactor * self.config.zoomFactor)
         # The selection window for the image
@@ -1663,8 +1713,6 @@ class TrvLabelTool(QtGui.QMainWindow):
     def toggleLockZoom(self):
         self.lockZoom = not self.lockZoom
         if self.lockZoom:
-            self.lockedMousePos = self.mousePos
-            self.lockedMousePosScaled = self.mousePosScaled
             iconDir = os.path.join(os.path.dirname(sys.argv[0]), 'icons')
             self.lockZoomAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'auto_red.png')))
         else:
@@ -1886,8 +1934,16 @@ class TrvLabelTool(QtGui.QMainWindow):
                                       round((1 - sens) * self.mousePosOnZoom.y() + sens * mousePosOrig.y()))
         else:
             mousePos = mousePosOrig
+
+        # Update zoom position
+        if not self.lockZoom:
+            self.zoomPos = mousePos
+
         mousePosScaled = QtCore.QPointF(float(mousePos.x() - self.xoff) / self.scale,
-                                        float(mousePos.y() - self.yoff) / self.scale)
+                                       float(mousePos.y() - self.yoff) / self.scale)
+        if self.isMouseInZoomWindow(mousePos):
+            mousePosScaled = self.getMousePosScaled(mousePos, self.zoomPos)
+
         mouseOutsideImage = not self.image.rect().contains(mousePosScaled.toPoint())
 
         mousePosScaled.setX(max(mousePosScaled.x(), 0.))
@@ -1900,6 +1956,10 @@ class TrvLabelTool(QtGui.QMainWindow):
             self.mousePosScaled = None
             self.mousePosOrig = None
             self.updateMouseObject()
+
+            if not self.lockZoom:
+                self.zoomPos = None
+
             self.update()
             return
 
