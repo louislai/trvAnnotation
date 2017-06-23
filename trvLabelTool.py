@@ -174,6 +174,9 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Chosen label for quick labeling
         self.chosenLabel = self.defaultLabel
 
+        # Lock zoom position
+        self.lockZoom = False
+
         # Setup the GUI
         self.initUI()
 
@@ -197,6 +200,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Add the tool buttons
         iconDir = os.path.join(os.path.dirname(__file__), 'icons')
 
+        #TODO: Set tips automatically
         # Open previous image
         backAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'back.png')), '&Tools', self)
         backAction.setShortcut('left')
@@ -382,11 +386,20 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.toolbar.addAction(exitAction)
 
         # Toggle auto mode
-        autoAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'auto.png')), 'Toggle auto mode', self)
+        autoAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'auto.png')), '&Tools', self)
         autoAction.setShortcut('a')
+        self.setTip(autoAction, 'Toggle Auto mode')
         autoAction.triggered.connect(self.toggleAuto)
         self.toolbar.addAction(autoAction)
         self.autoAction = autoAction
+
+        # Toggle zoom lock
+        lockZoomAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'auto.png')), '&Tools', self)
+        lockZoomAction.setShortcut('l')
+        self.setTip(lockZoomAction, 'Toggle locking of zoom position')
+        lockZoomAction.triggered.connect(self.toggleLockZoom)
+        self.toolbar.addAction(lockZoomAction)
+        self.lockZoomAction = lockZoomAction
 
         # Early closing of polygon
         closePolygonShortcut = QtGui.QShortcut(self)
@@ -884,17 +897,6 @@ class TrvLabelTool(QtGui.QMainWindow):
     def displayHelpMessage(self):
 
         message = self.applicationTitle + "\n\n"
-        message += "INSTRUCTIONS\n"
-        message += " - press open (left button) to select a city from drop-down menu\n"
-        message += " - browse images and edit labels using\n"
-        message += "   the toolbar buttons (check tooltips) and the controls below\n"
-        message += " - note that the editing happens in-place;\n"
-        message += "   if you want to annotate your own images or edit a custom\n"
-        message += "   set of labels, check (and modify) the code of the method 'loadCity'\n"
-        message += " - note that this tool modifys the JSON polygon files, but\n"
-        message += "   does not create or update the pngs; for the latter use\n"
-        message += "   the preparation tools that come with this tool box.\n"
-        message += "\n"
         message += "CONTROLS\n"
         message += " - highlight objects [move mouse]\n"
         message += " - draw new polygon\n"
@@ -908,18 +910,18 @@ class TrvLabelTool(QtGui.QMainWindow):
         message += "     - delete point from polygon [Shift + left click on point]\n"
         message += "     - deselect polygon [Q]\n"
         message += "     - select multiple polygons [Ctrl + left click]\n"
-        message += " - intersect/merge two polygons: draw new polygon, then\n"
-        message += "     - intersect [Shift + left click on existing polygon]\n"
-        message += "     - merge [Alt + left click on existing polygon]\n"
+        # message += " - intersect/merge two polygons: draw new polygon, then\n"
+        # message += "     - intersect [Shift + left click on existing polygon]\n"
+        # message += "     - merge [Alt + left click on existing polygon]\n"
         message += " - open zoom window [Z or hold down right mouse button]\n"
         message += "     - zoom in/out [mousewheel]\n"
         message += "     - enlarge/shrink zoom window [shift+mousewheel]\n"
-        message += " - start correction mode [C]\n"
-        message += "     - draw a correction box [left click and hold, move, release]\n"
-        message += "     - set box type [1,2,3,4]\n"
-        message += "     - previous/next box [E,R]\n"
-        message += "     - delete box [D]\n"
-        message += "     - modify text, use ascii only [M]\n"
+        # message += " - start correction mode [C]\n"
+        # message += "     - draw a correction box [left click and hold, move, release]\n"
+        # message += "     - set box type [1,2,3,4]\n"
+        # message += "     - previous/next box [E,R]\n"
+        # message += "     - delete box [D]\n"
+        # message += "     - modify text, use ascii only [M]\n"
 
         QtGui.QMessageBox.about(self, "HELP!", message)
         self.update()
@@ -1178,7 +1180,6 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.drawLabelAtMouse(qp)
         # Draw the zoom
         self.drawZoom(qp, overlay)
-        #self.drawZoom(qp, None)
 
         # Thats all drawing
         qp.end()
@@ -1540,10 +1541,10 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Abbrevation for the zoom window size
         zoomSize = self.config.zoomSize
         # Abbrevation for the mouse position
-        mouse = self.mousePos
+        mouse =  self.lockedMousePos if self.lockZoom else self.mousePos
 
         # The pixel that is the zoom center
-        pix = self.mousePosScaled
+        pix = self.lockedMousePosScaled if self.lockZoom else self.mousePosScaled
         # The size of the part of the image that is drawn in the zoom window
         selSize = zoomSize / (self.config.zoomFactor * self.config.zoomFactor)
         # The selection window for the image
@@ -1656,6 +1657,19 @@ class TrvLabelTool(QtGui.QMainWindow):
         else:
             iconDir = os.path.join(os.path.dirname(sys.argv[0]), 'icons')
             self.autoAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'auto.png')))
+        self.update()
+
+    # Toggle locking of zoom position
+    def toggleLockZoom(self):
+        self.lockZoom = not self.lockZoom
+        if self.lockZoom:
+            self.lockedMousePos = self.mousePos
+            self.lockedMousePosScaled = self.mousePosScaled
+            iconDir = os.path.join(os.path.dirname(sys.argv[0]), 'icons')
+            self.lockZoomAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'auto_red.png')))
+        else:
+            iconDir = os.path.join(os.path.dirname(sys.argv[0]), 'icons')
+            self.lockZoomAction.setIcon(QtGui.QIcon(os.path.join(iconDir, 'auto.png')))
         self.update()
 
     # Mouse button pressed
