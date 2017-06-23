@@ -465,16 +465,17 @@ class TrvLabelTool(QtGui.QMainWindow):
 
         for (labelLabel, label) in self.labelLabels.values():
             isSelected = label.name == selectedLabelName
-            borderWidth = 3 if isSelected else 0
+            borderWidth = 10 if isSelected else 0
             r, g, b = label.color
             backgroundColor = 'rgb({}, {}, {})'.format(r, g, b)
             stylesheet = """
-                border: {}px solid blue;
+                outline: {}px solid white;
+                border: {}px solid gray;
                 background: {};
                 font-size: 20px;
                 color: gray;
             """.format(
-                borderWidth, backgroundColor
+                borderWidth, borderWidth, backgroundColor
             )
             labelLabel.setStyleSheet(stylesheet)
         self.chosenLabel = selectedLabelName
