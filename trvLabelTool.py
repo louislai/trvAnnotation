@@ -411,6 +411,11 @@ class TrvLabelTool(QtGui.QMainWindow):
         closePolygonShortcut.setKey('v')
         self.connect(closePolygonShortcut, QtCore.SIGNAL("activated()"), self.closePolygon)
 
+        # Quick building labeling
+        quickBuildingShortcut = QtGui.QShortcut(self)
+        quickBuildingShortcut.setKey('b')
+        self.connect(quickBuildingShortcut, QtCore.SIGNAL("activated()"), self.quickBuilding)
+
         # Label toolbar
         self.addToolBarBreak()
         self.labelToolbar = self.addToolBar("Label")
@@ -453,8 +458,6 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.show()
 
     def chooseLabel(self, selectedLabelName):
-        selectedLabelLabel, selectedLabel = self.labelLabels[selectedLabelName]
-
         # Check if we are trying to modify stuff
         if self.selObjs:
             self.quickModifyLabel(selectedLabelName)
@@ -474,7 +477,7 @@ class TrvLabelTool(QtGui.QMainWindow):
                 borderWidth, backgroundColor
             )
             labelLabel.setStyleSheet(stylesheet)
-
+        self.chosenLabel = selectedLabelName
         self.update()
 
     # Switch to previous image in file list
@@ -1609,6 +1612,9 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Show the zoom image
         qp.drawImage(view, self.image, sel)
 
+        # Draw border around zoom image
+        border = QtCore.QRectF
+
         # Draw the overlay
         # Save QPainter settings to stack
         qp.save()
@@ -2126,6 +2132,20 @@ class TrvLabelTool(QtGui.QMainWindow):
             act.setEnabled(bool(self.selObjs))
         for act in self.actClosedPoly:
             act.setEnabled(False)
+
+    # Draw the 4th point for building
+    def quickBuilding(self):
+        if self.drawPoly.count() == 3:
+            first = self.drawPoly[0]
+            second = self.drawPoly[1]
+            vector = QtCore.QPointF(
+                first.x() - second.x(),
+                first.y() - second.y()
+            )
+            nextPoint = self.drawPoly[2] + vector
+            self.drawPoly.append(nextPoint)
+        self.closePolygon()
+
 
     # We just closed the polygon and need to deal with this situation
     def closePolygon(self):
