@@ -154,6 +154,10 @@ class Annotation:
             self.fromJsonText(jsonText)
 
     def toJsonFile(self, jsonFile):
+        # Create intermediate dirs if not found
+        parentDir = os.path.dirname(jsonFile)
+        if not os.path.isdir(parentDir):
+            os.makedirs(parentDir)
         with open(jsonFile, 'w') as f:
             f.write(self.toJson())
 
