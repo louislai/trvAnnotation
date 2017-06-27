@@ -21,6 +21,8 @@ class CsObject:
     def __init__(self):
         # the label
         self.label = ""
+        # label id
+        self.labelId = -1
         # the polygon as list of points
         self.polygon = []
 
@@ -60,6 +62,7 @@ class CsObject:
     def fromJsonText(self, jsonText, objId):
         self.id = objId
         self.label = str(jsonText['label'])
+        self.labelId = str(jsonText['labelId'])
         self.polygon = [Point(p[0], p[1]) for p in jsonText['polygon']]
         if 'deleted' in jsonText.keys():
             self.deleted = jsonText['deleted']
@@ -85,6 +88,7 @@ class CsObject:
     def toJsonText(self):
         objDict = {}
         objDict['label'] = self.label
+        objDict['labelId'] = self.labelId
         objDict['id'] = self.id
         objDict['deleted'] = self.deleted
         objDict['verified'] = self.verified

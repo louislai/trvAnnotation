@@ -822,6 +822,7 @@ class TrvLabelTool(QtGui.QMainWindow):
                     self.addChange(
                         "Set label {0} for object {1} with previous label {2}".format(label, obj.id, obj.label))
                     obj.label = label
+                    obj.labelId = name2label[label].id
                     obj.updateDate()
 
         # Update
@@ -2284,6 +2285,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         # Insert the object in the labels list
         obj = CsObject()
         obj.label = label
+        obj.labelId = name2label[label].id
 
         obj.polygon = [Point(p.x(), p.y()) for p in polygon]
 
