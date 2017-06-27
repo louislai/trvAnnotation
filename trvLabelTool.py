@@ -913,18 +913,23 @@ class TrvLabelTool(QtGui.QMainWindow):
         message += "     - add point to open polygon [left click]\n"
         message += "     - delete last added point [Backspace]\n"
         message += "     - close polygon [left click on first point]\n"
+        message += "     - close a polygon without selecting the first point [V]\n"
+        message += "     - automatically add the 4th corner for a building [B]\n"
+        message += "     - stop drawing [Q]"
         message += " - select closed polygon, existing object [Ctrl + left click]\n"
         message += "     - move point [left click and hold on point, move mouse]\n"
         message += "     - add point [click on edge]\n"
         message += "     - delete point from polygon [Shift + left click on point]\n"
         message += "     - deselect polygon [Q]\n"
         message += "     - select multiple polygons [Ctrl + left click]\n"
+        message += " - use auto mode to annotate quickly [A]\n"
         # message += " - intersect/merge two polygons: draw new polygon, then\n"
         # message += "     - intersect [Shift + left click on existing polygon]\n"
         # message += "     - merge [Alt + left click on existing polygon]\n"
         message += " - open zoom window [Z or hold down right mouse button]\n"
         message += "     - zoom in/out [mousewheel]\n"
         message += "     - enlarge/shrink zoom window [shift+mousewheel]\n"
+        message += "     - lock the zoom window (no longer following the mouse) [L]\n"
         # message += " - start correction mode [C]\n"
         # message += "     - draw a correction box [left click and hold, move, release]\n"
         # message += "     - set box type [1,2,3,4]\n"
@@ -1675,6 +1680,10 @@ class TrvLabelTool(QtGui.QMainWindow):
                     if not obj.id in self.changedPolygon:
                         self.changedPolygon.append(obj.id)
                         self.addChange("Changed polygon of object {0} with label {1}".format(obj.id, obj.label))
+
+                        # Auto save
+                        if self.config.autoSave:
+                            self.save()
             # Auto mode
             if self.auto and not self.drawPoly.isEmpty() and not self.drawPolyClosed:
                 REFRESH_RATE = 3
