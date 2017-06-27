@@ -913,6 +913,7 @@ class TrvLabelTool(QtGui.QMainWindow):
 
         message = self.applicationTitle + "\n\n"
         message += "CONTROLS\n"
+        message += " - fill whole image with selected label [F]\n"
         message += " - highlight objects [move mouse]\n"
         message += " - draw new polygon\n"
         message += "     - start drawing a polygon [left click]\n"
