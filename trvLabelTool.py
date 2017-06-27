@@ -242,12 +242,12 @@ class TrvLabelTool(QtGui.QMainWindow):
         self.actImage.append(selImageAction)
 
         # Save the current image
-        saveAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'save.png')), '&Tools', self)
-        saveAction.setShortcuts('s')
-        self.setTip(saveAction, 'Save changes')
-        saveAction.triggered.connect(self.save)
-        self.toolbar.addAction(saveAction)
-        self.actChanges.append(saveAction)
+        # saveAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'save.png')), '&Tools', self)
+        # saveAction.setShortcuts('s')
+        # self.setTip(saveAction, 'Save changes')
+        # saveAction.triggered.connect(self.save)
+        # self.toolbar.addAction(saveAction)
+        # self.actChanges.append(saveAction)
 
         # Clear the currently edited polygon
         clearPolAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'clearpolygon.png')), '&Tools', self)
@@ -360,7 +360,7 @@ class TrvLabelTool(QtGui.QMainWindow):
 
         # Display path to current image in message bar
         displayFilepathAction = QtGui.QAction(QtGui.QIcon(os.path.join(iconDir, 'filepath.png')), '&Tools', self)
-        displayFilepathAction.setShortcut('f')
+        displayFilepathAction.setShortcut('p')
         self.setTip(displayFilepathAction, 'Show path to current image')
         displayFilepathAction.triggered.connect(self.displayFilepath)
         self.toolbar.addAction(displayFilepathAction)
@@ -415,6 +415,11 @@ class TrvLabelTool(QtGui.QMainWindow):
         quickBuildingShortcut = QtGui.QShortcut(self)
         quickBuildingShortcut.setKey('b')
         self.connect(quickBuildingShortcut, QtCore.SIGNAL("activated()"), self.quickBuilding)
+
+        # Whole image labeling
+        labelFullImageShortcut = QtGui.QShortcut(self)
+        labelFullImageShortcut.setKey('f')
+        self.connect(labelFullImageShortcut, QtCore.SIGNAL("activated()"), self.labelFullImage)
 
         # Label toolbar
         self.addToolBarBreak()
@@ -912,7 +917,7 @@ class TrvLabelTool(QtGui.QMainWindow):
         message += " - draw new polygon\n"
         message += "     - start drawing a polygon [left click]\n"
         message += "     - add point to open polygon [left click]\n"
-        message += "     - delete last added point [Backspace]\n"
+        message += "     - delete last added point [X]\n"
         message += "     - close polygon [left click on first point]\n"
         message += "     - close a polygon without selecting the first point [V]\n"
         message += "     - automatically add the 4th corner for a building [B]\n"
@@ -1892,9 +1897,11 @@ class TrvLabelTool(QtGui.QMainWindow):
         if e.key() == QtCore.Qt.Key_Control:
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         # Backspace deletes last point from polygon
-        elif e.key() == QtCore.Qt.Key_Backspace:
+        elif e.key() == QtCore.Qt.Key_X:
             if not self.drawPolyClosed:
                 del self.drawPoly[-1]
+                if self.config.autoSave:
+                    self.save()
                 self.update()
         # set alpha to temporary zero
         elif e.key() == QtCore.Qt.Key_0:
@@ -2155,6 +2162,20 @@ class TrvLabelTool(QtGui.QMainWindow):
             )
             nextPoint = self.drawPoly[2] + vector
             self.drawPoly.append(nextPoint)
+        self.closePolygon()
+
+    # Draw the 4th point for building
+    def labelFullImage(self):
+        self.drawPoly.clear()
+        imageSize = self.image.size()
+        tl = QtCore.QPointF(0, 0)
+        tr = QtCore.QPointF(imageSize.width(), 0)
+        br = QtCore.QPointF(imageSize.width(), imageSize.height())
+        bl = QtCore.QPointF(0, imageSize.height())
+
+        for pt in [tl, tr, br, bl]:
+            self.drawPoly.append(pt)
+
         self.closePolygon()
 
 
